@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import Measure from 'react-measure';
 import { drop, groupBy, orderBy, take } from 'lodash';
 import { Manager, Popper, Reference } from 'react-popper';
+import moment from 'moment';
 
 import { Avatar } from '../Avatar';
 import { Spinner } from '../Spinner';
@@ -20,6 +21,7 @@ import {
   ReactionViewer,
 } from './ReactionViewer';
 import { Props as ReactionPickerProps, ReactionPicker } from './ReactionPicker';
+import { TimelineItemType } from './TimelineItem';
 import { Emoji } from '../emoji/Emoji';
 
 import {
@@ -39,6 +41,7 @@ import { ContactType } from '../../types/Contact';
 
 import { getIncrement } from '../../util/timer';
 import { isFileDangerous } from '../../util/isFileDangerous';
+import { formatRelativeTime } from '../../util/formatRelativeTime';
 import { ColorType, LocalizerType } from '../../types/Util';
 import { createRefMerger } from '../_util';
 import { ContextMenu, ContextMenuTrigger, MenuItem } from 'react-contextmenu';
@@ -63,6 +66,12 @@ interface LinkPreviewType {
 export type PropsData = {
   id: string;
   conversationId: string;
+  context?: {
+    before?: TimelineItemType;
+    after?: TimelineItemType;
+  };
+  isFirstInCluster?: boolean;
+  isLastInCluster?: boolean;
   text?: string;
   textPending?: boolean;
   isSticker?: boolean;
@@ -153,6 +162,8 @@ export type PropsActions = {
 
   showExpiredIncomingTapToViewToast: () => unknown;
   showExpiredOutgoingTapToViewToast: () => unknown;
+
+  forceMessageHeightUpdate: (id: string, conversationId: string) => unknown;
 };
 
 export type Props = PropsData &
@@ -174,6 +185,10 @@ interface State {
   isWide: boolean;
 
   containerWidth: number;
+
+  isFirstInCluster: boolean;
+  isLastInCluster: boolean;
+  collapseMetadata: boolean;
 }
 
 const EXPIRATION_CHECK_MINIMUM = 2000;
@@ -214,30 +229,157 @@ export class Message extends React.PureComponent<Props, State> {
       isWide: this.wideMl.matches,
 
       containerWidth: 0,
+
+      isFirstInCluster: Message.isFirstInCluster(props),
+      isLastInCluster: Message.isLastInCluster(props),
+      collapseMetadata: Message.shouldCollapseMetadata(props),
     };
   }
 
   public static getDerivedStateFromProps(props: Props, state: State): State {
+    let nextState = state;
+
     if (!props.isSelected) {
-      return {
-        ...state,
+      nextState = {
+        ...nextState,
         isSelected: false,
         prevSelectedCounter: 0,
       };
-    }
-
-    if (
+    } else if (
       props.isSelected &&
       props.isSelectedCounter !== state.prevSelectedCounter
     ) {
-      return {
-        ...state,
+      nextState = {
+        ...nextState,
         isSelected: props.isSelected,
         prevSelectedCounter: props.isSelectedCounter,
       };
     }
 
-    return state;
+    nextState = {
+      ...nextState,
+      isFirstInCluster: Message.isFirstInCluster(props),
+      isLastInCluster: Message.isLastInCluster(props),
+      collapseMetadata: Message.shouldCollapseMetadata(props),
+    };
+
+    return nextState;
+  }
+
+  public static isFirstInCluster(props: Props) {
+    const { authorPhoneNumber, context, isFirstInCluster, timestamp } = props;
+
+    if (isFirstInCluster !== undefined) {
+      return isFirstInCluster;
+    }
+
+    if (!context || !context.before) {
+      return true;
+    }
+
+    const { before } = context;
+
+    if (
+      !before ||
+      before.type !== 'message' ||
+      before.data.authorPhoneNumber !== authorPhoneNumber
+    ) {
+      return true;
+    }
+
+    const beforeMoment = moment(before.data.timestamp).local();
+    const currMoment = moment(timestamp).local();
+
+    if (!currMoment.isSame(beforeMoment, 'day')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public static isLastInCluster(props: Props) {
+    const { authorPhoneNumber, context, isLastInCluster, timestamp } = props;
+
+    if (isLastInCluster !== undefined) {
+      return isLastInCluster;
+    }
+
+    if (!context) {
+      return true;
+    }
+
+    const { after } = context;
+
+    if (
+      !after ||
+      after.type !== 'message' ||
+      after.data.authorPhoneNumber !== authorPhoneNumber
+    ) {
+      return true;
+    }
+
+    const afterMoment = moment(after.data.timestamp).local();
+    const currMoment = moment(timestamp).local();
+
+    if (!currMoment.isSame(afterMoment, 'day')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  public static shouldCollapseMetadata(props: Props) {
+    const {
+      collapseMetadata,
+      context,
+      direction,
+      timestamp,
+      status,
+      authorPhoneNumber,
+      i18n,
+      expirationLength,
+      expirationTimestamp,
+    } = props;
+
+    if (collapseMetadata) {
+      return true;
+    }
+
+    if (
+      !context ||
+      !context.after ||
+      context.after.type !== 'message' ||
+      context.after.data.authorPhoneNumber !== authorPhoneNumber
+    ) {
+      return false;
+    }
+
+    const { after } = context;
+    const timestampString = formatRelativeTime(timestamp, {
+      i18n,
+      extended: true,
+    });
+    const nextTimestampString = formatRelativeTime(after.data.timestamp, {
+      i18n,
+      extended: true,
+    });
+
+    // Collapse metadata if and only if...
+    // ...the timestamp text is the same
+    // ...and the message status is the same as the next for outgoing messages
+    // ...and the message did not fail to send
+    // ...and this is not a disappearing message.
+    if (
+      timestampString !== nextTimestampString ||
+      (direction === 'outgoing' && status !== after.data.status) ||
+      status === 'error' ||
+      expirationLength ||
+      expirationTimestamp
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   public handleWideMlChange = (event: MediaQueryListEvent) => {
@@ -328,11 +470,21 @@ export class Message extends React.PureComponent<Props, State> {
     this.wideMl.removeEventListener('change', this.handleWideMlChange);
   }
 
-  public componentDidUpdate(prevProps: Props) {
+  public componentDidUpdate(prevProps: Props, prevState: State) {
+    const { forceMessageHeightUpdate } = this.props;
+
     this.startSelectedTimer();
 
     if (!prevProps.isSelected && this.props.isSelected) {
       this.setFocus();
+    }
+
+    if (
+      prevState.isFirstInCluster !== this.state.isFirstInCluster ||
+      prevState.isLastInCluster !== this.state.isLastInCluster ||
+      prevState.collapseMetadata !== this.state.collapseMetadata
+    ) {
+      forceMessageHeightUpdate(this.props.id, this.props.conversationId);
     }
 
     this.checkExpired();
@@ -383,7 +535,6 @@ export class Message extends React.PureComponent<Props, State> {
   // tslint:disable-next-line cyclomatic-complexity
   public renderMetadata() {
     const {
-      collapseMetadata,
       direction,
       expirationLength,
       expirationTimestamp,
@@ -396,6 +547,7 @@ export class Message extends React.PureComponent<Props, State> {
       textPending,
       timestamp,
     } = this.props;
+    const { collapseMetadata } = this.state;
 
     if (collapseMetadata) {
       return null;
@@ -486,16 +638,16 @@ export class Message extends React.PureComponent<Props, State> {
       authorName,
       authorPhoneNumber,
       authorProfileName,
-      collapseMetadata,
       conversationType,
       direction,
       isSticker,
       isTapToView,
       isTapToViewExpired,
     } = this.props;
+    const { isFirstInCluster } = this.state;
 
-    if (collapseMetadata) {
-      return;
+    if (!isFirstInCluster) {
+      return null;
     }
 
     const title = authorName ? authorName : authorPhoneNumber;
@@ -528,7 +680,6 @@ export class Message extends React.PureComponent<Props, State> {
   public renderAttachment() {
     const {
       attachments,
-      collapseMetadata,
       conversationType,
       direction,
       i18n,
@@ -538,7 +689,12 @@ export class Message extends React.PureComponent<Props, State> {
       isSticker,
       text,
     } = this.props;
-    const { imageBroken } = this.state;
+    const {
+      imageBroken,
+      isFirstInCluster,
+      isLastInCluster,
+      collapseMetadata,
+    } = this.state;
 
     if (!attachments || !attachments[0]) {
       return null;
@@ -549,7 +705,9 @@ export class Message extends React.PureComponent<Props, State> {
     const withContentBelow = Boolean(text);
     const withContentAbove =
       Boolean(quote) ||
-      (conversationType === 'group' && direction === 'incoming');
+      (conversationType === 'group' &&
+        direction === 'incoming' &&
+        isFirstInCluster);
     const displayImage = canDisplayImage(attachments);
 
     if (
@@ -567,6 +725,13 @@ export class Message extends React.PureComponent<Props, State> {
         <div
           className={classNames(
             `module-message__${prefix}-container`,
+            `module-message__${prefix}-container--${direction}`,
+            isFirstInCluster
+              ? `module-message__${prefix}-container--first-in-cluster`
+              : null,
+            isLastInCluster
+              ? `module-message__${prefix}-container--last-in-cluster`
+              : null,
             withContentAbove
               ? `module-message__${prefix}-container--with-content-above`
               : null,
@@ -580,6 +745,9 @@ export class Message extends React.PureComponent<Props, State> {
         >
           <ImageGrid
             attachments={attachments}
+            direction={direction}
+            isFirstInCluster={isFirstInCluster}
+            isLastInCluster={isLastInCluster}
             withContentAbove={isSticker || withContentAbove}
             withContentBelow={isSticker || withContentBelow}
             isSticker={isSticker}
@@ -692,6 +860,7 @@ export class Message extends React.PureComponent<Props, State> {
       previews,
       quote,
     } = this.props;
+    const { isFirstInCluster } = this.state;
 
     // Attachments take precedence over Link Previews
     if (attachments && attachments.length) {
@@ -709,7 +878,10 @@ export class Message extends React.PureComponent<Props, State> {
 
     const withContentAbove =
       Boolean(quote) ||
-      (conversationType === 'group' && direction === 'incoming');
+      (conversationType === 'group' &&
+        direction === 'incoming' &&
+        isFirstInCluster);
+    const hasCurvedCorner = !withContentAbove && isFirstInCluster;
 
     const previewHasImage = first.image && isImageAttachment(first.image);
     const width = first.image && first.image.width;
@@ -723,6 +895,9 @@ export class Message extends React.PureComponent<Props, State> {
         className={classNames(
           'module-message__link-preview',
           `module-message__link-preview--${direction}`,
+          isFirstInCluster
+            ? 'module-message__link-preview--first-in-cluster'
+            : null,
           withContentAbove
             ? 'module-message__link-preview--with-content-above'
             : null
@@ -745,6 +920,7 @@ export class Message extends React.PureComponent<Props, State> {
         {first.image && previewHasImage && isFullSizeImage ? (
           <ImageGrid
             attachments={[first.image]}
+            isFirstInCluster={isFirstInCluster}
             withContentAbove={withContentAbove}
             withContentBelow={true}
             onError={this.handleImageError}
@@ -754,6 +930,10 @@ export class Message extends React.PureComponent<Props, State> {
         <div
           className={classNames(
             'module-message__link-preview__content',
+            `module-message__link-preview__content--${direction}`,
+            isFirstInCluster
+              ? 'module-message__link-preview__content--first-in-cluster'
+              : null,
             withContentAbove || isFullSizeImage
               ? 'module-message__link-preview__content--with-content-above'
               : null
@@ -762,7 +942,7 @@ export class Message extends React.PureComponent<Props, State> {
           {first.image && previewHasImage && !isFullSizeImage ? (
             <div className="module-message__link-preview__icon_container">
               <Image
-                smallCurveTopLeft={!withContentAbove}
+                smallCurveTopLeft={!hasCurvedCorner}
                 noBorder={true}
                 noBackground={true}
                 softCorners={true}
@@ -806,13 +986,16 @@ export class Message extends React.PureComponent<Props, State> {
       quote,
       scrollToQuotedMessage,
     } = this.props;
+    const { isFirstInCluster } = this.state;
 
     if (!quote) {
       return null;
     }
 
     const withContentAbove =
-      conversationType === 'group' && direction === 'incoming';
+      conversationType === 'group' &&
+      direction === 'incoming' &&
+      isFirstInCluster;
     const quoteColor =
       direction === 'incoming' ? authorColor : quote.authorColor;
     const { referencedMessageNotFound } = quote;
@@ -839,6 +1022,7 @@ export class Message extends React.PureComponent<Props, State> {
         authorColor={quoteColor}
         referencedMessageNotFound={referencedMessageNotFound}
         isFromMe={quote.isFromMe}
+        isFirstInCluster={isFirstInCluster}
         withContentAbove={withContentAbove}
       />
     );
@@ -846,7 +1030,6 @@ export class Message extends React.PureComponent<Props, State> {
 
   public renderEmbeddedContact() {
     const {
-      collapseMetadata,
       contact,
       conversationType,
       direction,
@@ -854,13 +1037,17 @@ export class Message extends React.PureComponent<Props, State> {
       showContactDetail,
       text,
     } = this.props;
+    const { isFirstInCluster, collapseMetadata } = this.state;
+
     if (!contact) {
       return null;
     }
 
     const withCaption = Boolean(text);
     const withContentAbove =
-      conversationType === 'group' && direction === 'incoming';
+      conversationType === 'group' &&
+      direction === 'incoming' &&
+      isFirstInCluster;
     const withContentBelow = withCaption || !collapseMetadata;
 
     const otherContent = (contact && contact.signalAccount) || withCaption;
@@ -907,17 +1094,18 @@ export class Message extends React.PureComponent<Props, State> {
       authorName,
       authorPhoneNumber,
       authorProfileName,
-      collapseMetadata,
       authorColor,
       conversationType,
       direction,
       i18n,
     } = this.props;
+    const { isLastInCluster, collapseMetadata } = this.state;
 
     if (
       collapseMetadata ||
       conversationType !== 'group' ||
-      direction === 'outgoing'
+      direction === 'outgoing' ||
+      !isLastInCluster
     ) {
       return;
     }
@@ -1399,18 +1587,19 @@ export class Message extends React.PureComponent<Props, State> {
 
   public renderTapToView() {
     const {
-      collapseMetadata,
       conversationType,
       direction,
       isTapToViewExpired,
       isTapToViewError,
     } = this.props;
+    const { isFirstInCluster, collapseMetadata } = this.state;
 
     const withContentBelow = !collapseMetadata;
     const withContentAbove =
       !collapseMetadata &&
       conversationType === 'group' &&
-      direction === 'incoming';
+      direction === 'incoming' &&
+      isFirstInCluster;
 
     return (
       <div
@@ -1896,7 +2085,7 @@ export class Message extends React.PureComponent<Props, State> {
       isTapToViewError,
       reactions,
     } = this.props;
-    const { isSelected } = this.state;
+    const { isSelected, isFirstInCluster, isLastInCluster } = this.state;
 
     const isAttachmentPending = this.isAttachmentPending();
 
@@ -1908,6 +2097,8 @@ export class Message extends React.PureComponent<Props, State> {
       isSelected && !isSticker ? 'module-message__container--selected' : null,
       isSticker ? 'module-message__container--with-sticker' : null,
       !isSticker ? `module-message__container--${direction}` : null,
+      isFirstInCluster ? 'module-message__container--first-in-cluster' : null,
+      isLastInCluster ? 'module-message__container--last-in-cluster' : null,
       isTapToView ? 'module-message__container--with-tap-to-view' : null,
       isTapToView && isTapToViewExpired
         ? 'module-message__container--with-tap-to-view-expired'
@@ -1968,7 +2159,14 @@ export class Message extends React.PureComponent<Props, State> {
       isSticker,
       timestamp,
     } = this.props;
-    const { expired, expiring, imageBroken, isSelected } = this.state;
+    const {
+      expired,
+      expiring,
+      imageBroken,
+      isSelected,
+      isFirstInCluster,
+      isLastInCluster,
+    } = this.state;
 
     // This id is what connects our triple-dot click with our associated pop-up menu.
     //   It needs to be unique.
@@ -1989,7 +2187,9 @@ export class Message extends React.PureComponent<Props, State> {
           `module-message--${direction}`,
           isSelected ? 'module-message--selected' : null,
           expiring ? 'module-message--expired' : null,
-          conversationType === 'group' ? 'module-message--group' : null
+          conversationType === 'group' ? 'module-message--group' : null,
+          isFirstInCluster ? 'module-message--first-in-cluster' : null,
+          isLastInCluster ? 'module-message--last-in-cluster' : null
         )}
         tabIndex={0}
         // We pretend to be a button because we sometimes contain buttons and a button

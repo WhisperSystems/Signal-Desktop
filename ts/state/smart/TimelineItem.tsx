@@ -13,13 +13,21 @@ import {
 type ExternalProps = {
   id: string;
   conversationId: string;
+  context?: {
+    beforeId?: string;
+    afterId?: string;
+  };
 };
 
 const mapStateToProps = (state: StateType, props: ExternalProps) => {
-  const { id, conversationId } = props;
+  const { id, context, conversationId } = props;
 
   const messageSelector = getMessageSelector(state);
   const item = messageSelector(id);
+  const before =
+    context && context.beforeId ? messageSelector(context.beforeId) : undefined;
+  const after =
+    context && context.afterId ? messageSelector(context.afterId) : undefined;
 
   const selectedMessage = getSelectedMessage(state);
   const isSelected = Boolean(selectedMessage && id === selectedMessage.id);
@@ -28,6 +36,10 @@ const mapStateToProps = (state: StateType, props: ExternalProps) => {
     item,
     id,
     conversationId,
+    context: {
+      before,
+      after,
+    },
     isSelected,
     i18n: getIntl(state),
   };

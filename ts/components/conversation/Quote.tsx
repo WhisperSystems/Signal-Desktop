@@ -19,6 +19,7 @@ interface Props {
   i18n: LocalizerType;
   isFromMe: boolean;
   isIncoming: boolean;
+  isFirstInCluster: boolean;
   withContentAbove: boolean;
   onClick?: () => void;
   onClose?: () => void;
@@ -375,6 +376,7 @@ export class Quote extends React.Component<Props, State> {
       isIncoming,
       onClick,
       referencedMessageNotFound,
+      isFirstInCluster,
       withContentAbove,
     } = this.props;
 
@@ -399,6 +401,7 @@ export class Quote extends React.Component<Props, State> {
               ? `module-quote--incoming-${authorColor}`
               : `module-quote--outgoing-${authorColor}`,
             !onClick ? 'module-quote--no-click' : null,
+            isFirstInCluster ? 'module-quote--first-in-cluster' : null,
             withContentAbove ? 'module-quote--with-content-above' : null,
             referencedMessageNotFound
               ? 'module-quote--with-reference-warning'

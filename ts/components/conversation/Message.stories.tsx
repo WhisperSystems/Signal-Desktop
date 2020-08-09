@@ -22,6 +22,7 @@ const book = storiesOf('Components/Conversation/Message', module);
 const baseDataProps: Pick<
   PropsData,
   | 'id'
+  | 'context'
   | 'canReply'
   | 'conversationId'
   | 'interactionMode'
@@ -31,8 +32,8 @@ const baseDataProps: Pick<
   | 'authorPhoneNumber'
 > = {
   id: 'asdf',
-  canReply: true,
   conversationId: 'asdf',
+  canReply: true,
   interactionMode: 'mouse',
   conversationType: 'direct',
   previews: [],
@@ -71,6 +72,7 @@ const makeDefaultActionProps = (): PropsActions => ({
   showExpiredOutgoingTapToViewToast: action(
     'showExpiredOutgoingTapToViewToast'
   ),
+  forceMessageHeightUpdate: action('forceMessageHeightUpdate'),
 });
 
 const makeDefaultHousekeepingProps = (): PropsHousekeeping => ({

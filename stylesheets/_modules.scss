@@ -51,8 +51,6 @@
 
   cursor: inherit;
   width: 100%;
-  margin-top: 4px;
-  margin-bottom: 4px;
 
   &::after {
     visibility: hidden;
@@ -93,6 +91,14 @@
   100% {
     transform: translateX(0px);
   }
+}
+
+.module-message--first-in-cluster {
+  margin-top: 4px;
+}
+
+.module-message__container--last-in-cluster {
+  margin-bottom: 4px;
 }
 
 // Spec: container < 438px
@@ -304,7 +310,7 @@
 .module-message__container {
   position: relative;
   display: inline-block;
-  border-radius: 16px;
+  border-radius: 6px;
   padding-right: 12px;
   padding-left: 12px;
   padding-top: 10px;
@@ -371,6 +377,9 @@
 }
 
 .module-message__container--outgoing {
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+
   @include light-theme {
     background-color: $color-gray-05;
   }
@@ -387,8 +396,12 @@
   }
 }
 
-// In case the color gets messed up
 .module-message__container--incoming {
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+
+  // In case the color gets messed up
+
   background-color: $color-conversation-grey;
 
   @include ios-theme {
@@ -399,6 +412,20 @@
     background-color: $color-gray-75;
     color: $color-gray-05;
   }
+}
+
+.module-message__container--first-in-cluster {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+.module-message__container--last-in-cluster {
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.module-message__container--typing {
+  border-radius: 16px;
 }
 
 @each $color, $value in $conversation-colors {
@@ -622,7 +649,7 @@
     bottom: -10px;
   }
 
-  border-radius: 16px;
+  border-radius: 6px;
   overflow: hidden;
 
   @include light-theme {
@@ -630,6 +657,26 @@
   }
   @include dark-theme {
     background-color: $color-gray-95;
+  }
+
+  &--outgoing {
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+  }
+
+  &--incoming {
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+  }
+
+  &--first-in-cluster {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+
+  &--last-in-cluster {
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
   }
 
   &--with-content-below {
@@ -849,8 +896,8 @@
 
   margin-top: -10px;
   margin-bottom: 5px;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
   overflow: hidden;
 
   @include keyboard-mode {
@@ -858,6 +905,19 @@
       box-shadow: 0px 0px 0px 2px $ultramarine-ui-light;
     }
   }
+}
+
+.module-message__link-preview--outgoing {
+  border-top-left-radius: 16px;
+}
+
+.module-message__link-preview--incoming {
+  border-top-left-radius: 16px;
+}
+
+.module-message__link-preview--first-in-cluster {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
 .module-message__link-preview--with-content-above {
@@ -868,8 +928,8 @@
 
 .module-message__link-preview__content {
   padding: 8px;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
   background-color: $color-white;
   display: flex;
   flex-direction: row;
@@ -882,6 +942,19 @@
     background-color: $color-gray-95;
     border: 1px solid $color-gray-60;
   }
+}
+
+.module-message__link-preview__content--outgoing {
+  border-top-left-radius: 16px;
+}
+
+.module-message__link-preview__content--incoming {
+  border-top-right-radius: 16px;
+}
+
+.module-message__link-preview__content--first-in-cluster {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
 .module-message__link-preview__content--with-content-above {
@@ -1584,8 +1657,6 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
 
   position: relative;
   border-radius: 4px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
 
   display: flex;
   flex-direction: row;
@@ -1606,17 +1677,9 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
   cursor: auto;
 }
 
-.module-quote--with-content-above {
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-
-.module-quote--with-reference-warning {
-  border-bottom-left-radius: 0px;
-  border-bottom-right-radius: 0px;
-}
-
 .module-quote--outgoing {
+  border-top-left-radius: 10px;
+
   border-left-color: $color-conversation-grey;
   @include light-theme {
     background-color: $color-conversation-grey-tint;
@@ -1679,6 +1742,8 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
 }
 
 .module-quote--incoming {
+  border-top-right-radius: 10px;
+
   @include light-theme {
     border-left-color: $color-white;
     background-color: $color-conversation-grey-tint;
@@ -1711,6 +1776,21 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
       background-color: $value;
     }
   }
+}
+
+.module-quote--first-in-cluster {
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+.module-quote--with-content-above {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.module-quote--with-reference-warning {
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
 }
 
 .module-quote__primary {
@@ -2243,6 +2323,8 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
 
 .module-inline-notification-wrapper {
   outline: none;
+  margin-top: 4px;
+  margin-bottom: 4px;
   padding: 5px;
 
   @include keyboard-mode {
@@ -3936,6 +4018,18 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
 .module-image--small-curved-top-left {
   border-top-left-radius: 10px;
 }
+.module-image--tiny-curved-top-left {
+  border-top-left-radius: 6px;
+}
+.module-image--tiny-curved-top-right {
+  border-top-right-radius: 6px;
+}
+.module-image--tiny-curved-bottom-left {
+  border-bottom-left-radius: 6px;
+}
+.module-image--tiny-curved-bottom-right {
+  border-top-bottom-right: 6px;
+}
 
 .module-image__border-overlay {
   @include button-reset;
@@ -5474,11 +5568,6 @@ button.module-image__border-overlay:focus {
 .module-timeline {
   height: 100%;
   overflow: hidden;
-}
-
-.module-timeline__message-container {
-  padding-top: 4px;
-  padding-bottom: 4px;
 }
 
 .ReactVirtualized__List {

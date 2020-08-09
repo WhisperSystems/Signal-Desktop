@@ -47,7 +47,11 @@ type PropsHousekeepingType = {
   renderItem: (
     id: string,
     conversationId: string,
-    actions: Object
+    actions: Object,
+    context?: {
+      beforeId?: string;
+      afterId?: string;
+    }
   ) => JSX.Element;
   renderLastSeenIndicator: (id: string) => JSX.Element;
   renderLoadingRow: (id: string) => JSX.Element;
@@ -546,6 +550,8 @@ export class Timeline extends React.PureComponent<Props, State> {
         );
       }
       const messageId = items[itemIndex];
+      const beforeId = items[itemIndex - 1];
+      const afterId = items[itemIndex + 1];
       rowContents = (
         <div
           id={messageId}
@@ -554,7 +560,7 @@ export class Timeline extends React.PureComponent<Props, State> {
           style={styleWithWidth}
           role="row"
         >
-          {renderItem(messageId, id, this.props)}
+          {renderItem(messageId, id, this.props, { beforeId, afterId })}
         </div>
       );
     }
