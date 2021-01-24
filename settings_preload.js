@@ -58,6 +58,13 @@ window.setHideMenuBar = makeSetter('hide-menu-bar');
 window.getSpellCheck = makeGetter('spell-check');
 window.setSpellCheck = makeSetter('spell-check');
 
+window.getAutoSubstituteAsciiEmojis = makeGetter(
+  'auto-substitute-ascii-emojis'
+);
+window.setAutoSubstituteAsciiEmojis = makeSetter(
+  'auto-substitute-ascii-emojis'
+);
+
 window.getAlwaysRelayCalls = makeGetter('always-relay-calls');
 window.setAlwaysRelayCalls = makeSetter('always-relay-calls');
 
@@ -93,8 +100,8 @@ window.setLastSyncTime = makeSetter('sync-time');
 window.deleteAllData = () => ipcRenderer.send('delete-all-data');
 
 function makeGetter(name) {
-  return () =>
-    new Promise((resolve, reject) => {
+  return () => {
+    return new Promise((resolve, reject) => {
       ipcRenderer.once(`get-success-${name}`, (event, error, value) => {
         if (error) {
           return reject(error);
@@ -104,6 +111,7 @@ function makeGetter(name) {
       });
       ipcRenderer.send(`get-${name}`);
     });
+  };
 }
 
 function makeSetter(name) {
