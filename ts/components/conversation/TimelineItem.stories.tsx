@@ -41,6 +41,7 @@ const getDefaultProps = () => ({
   selectMessage: action('selectMessage'),
   reactToMessage: action('reactToMessage'),
   clearSelectedMessage: action('clearSelectedMessage'),
+  copyMessage: action('copyMessage'),
   replyToMessage: action('replyToMessage'),
   retrySend: action('retrySend'),
   deleteMessage: action('deleteMessage'),

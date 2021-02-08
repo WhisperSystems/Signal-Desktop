@@ -131,6 +131,7 @@ export type PropsData = {
   deletedForEveryone?: boolean;
 
   canReply: boolean;
+  canCopy: boolean;
   canDownload: boolean;
   canDeleteForEveryone: boolean;
   isBlocked: boolean;
@@ -153,6 +154,7 @@ export type PropsActions = {
     id: string,
     { emoji, remove }: { emoji: string; remove: boolean }
   ) => void;
+  copyMessage: (id: string) => void;
   replyToMessage: (id: string) => void;
   retrySend: (id: string) => void;
   deleteMessage: (id: string) => void;
@@ -1370,6 +1372,7 @@ export class Message extends React.PureComponent<Props, State> {
   public renderContextMenu(triggerId: string): JSX.Element {
     const {
       attachments,
+      canCopy,
       canDownload,
       canReply,
       deleteMessage,
@@ -1379,6 +1382,7 @@ export class Message extends React.PureComponent<Props, State> {
       id,
       isSticker,
       isTapToView,
+      copyMessage,
       replyToMessage,
       retrySend,
       showMessageDetail,
@@ -1472,6 +1476,22 @@ export class Message extends React.PureComponent<Props, State> {
             {i18n('retrySend')}
           </MenuItem>
         ) : null}
+        {canCopy ? (
+          <MenuItem
+            attributes={{
+              className:
+                'module-message__context--icon module-message__context__copy-message',
+            }}
+            onClick={(event: React.MouseEvent) => {
+              event.stopPropagation();
+              event.preventDefault();
+
+              copyMessage(id);
+            }}
+          >
+            {i18n('copyMessage')}
+          </MenuItem>
+        ) : null}        
         <MenuItem
           attributes={{
             className:

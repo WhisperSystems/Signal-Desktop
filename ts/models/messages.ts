@@ -852,6 +852,7 @@ export class MessageModel extends window.Backbone.Model<MessageAttributesType> {
       canReply: this.canReply(),
       canDeleteForEveryone: this.canDeleteForEveryone(),
       canDownload: this.canDownload(),
+      canCopy: this.canCopy(),
       authorId: contact.id,
       authorTitle: contact.title,
       authorColor,
@@ -2139,6 +2140,10 @@ export class MessageModel extends window.Backbone.Model<MessageAttributesType> {
     }
 
     return true;
+  }
+
+  canCopy(): boolean {
+    return !!(this.get('body') || '').trim();
   }
 
   canDownload(): boolean {

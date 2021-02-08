@@ -11695,6 +11695,22 @@ $contact-modal-padding: 18px;
     }
   }
 
+  &__copy-message::before {
+    @include light-theme {
+      @include color-svg(
+        '../images/icons/v2/copy-outline-24.svg',
+        $color-black
+      );
+    }
+
+    @include dark-theme {
+      @include color-svg(
+        '../images/icons/v2/copy-outline-24.svg',
+        $color-gray-15
+      );
+    }
+  }
+
   &__retry-send::before {
     @include light-theme {
       @include color-svg('../images/icons/v2/send-24.svg', $color-black);

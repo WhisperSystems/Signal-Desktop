@@ -720,6 +720,9 @@ Whisper.ConversationView = Whisper.View.extend({
     const reactToMessage = (messageId: any, reaction: any) => {
       this.sendReactionMessage(messageId, reaction);
     };
+    const copyMessage = (messageId: any) => {
+      this.copyMessage(messageId);
+    };
     const replyToMessage = (messageId: any) => {
       this.setQuoteMessage(messageId);
     };
@@ -942,6 +945,7 @@ Whisper.ConversationView = Whisper.View.extend({
         openConversation,
         openLink,
         reactToMessage,
+        copyMessage,
         replyToMessage,
         retrySend,
         scrollToQuotedMessage,
@@ -2072,6 +2076,14 @@ Whisper.ConversationView = Whisper.View.extend({
         this.statusFetch = null;
       })
     );
+  },
+
+  async copyMessage(messageId: any) {
+    const message = this.model.messageCollection.get(messageId);
+    if (!message) {
+      throw new Error(`copyMessage: Did not find message for id ${messageId}`);
+    }
+    await navigator.clipboard.writeText(message.get('body'));
   },
 
   async retrySend(messageId: any) {
