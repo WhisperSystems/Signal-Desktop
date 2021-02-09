@@ -2083,7 +2083,16 @@ Whisper.ConversationView = Whisper.View.extend({
     if (!message) {
       throw new Error(`copyMessage: Did not find message for id ${messageId}`);
     }
-    await navigator.clipboard.writeText(message.get('body'));
+
+    const body = (message.get('body') || '').trim();
+
+    if (body) {
+      window.Signal.Util.clipboard.copyText(body);
+    } else {
+      window.Signal.Util.clipboard.copyImage(
+        message.get('attachments')[0].path
+      );
+    }
   },
 
   async retrySend(messageId: any) {

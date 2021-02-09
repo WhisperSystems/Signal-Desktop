@@ -2143,7 +2143,18 @@ export class MessageModel extends window.Backbone.Model<MessageAttributesType> {
   }
 
   canCopy(): boolean {
-    return !!(this.get('body') || '').trim();
+    const body = (this.get('body') || '').trim();
+    const attachments = this.get('attachments') || [];
+
+    if (!body && attachments.length > 1) {
+      return false;
+    }
+
+    if (!body && !isImage(attachments)) {
+      return false;
+    }
+
+    return true;
   }
 
   canDownload(): boolean {

@@ -829,9 +829,8 @@
     "message": "Download Attachment",
     "description": "Shown in a message's triple-dot menu if there isn't room for a dedicated download button"
   },
-  "copyMessage": {
-    "message": "Copy message",
-    "description": "Shown in triple-dot menu next to message to allow user to copy message"
+  "copy": {
+    "message": "Copy"
   },
   "reactToMessage": {
     "message": "React to Message",

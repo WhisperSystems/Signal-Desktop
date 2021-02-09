@@ -1398,6 +1398,22 @@ export class Message extends React.PureComponent<Props, State> {
 
     const menu = (
       <ContextMenu id={triggerId}>
+        {canCopy ? (
+          <MenuItem
+            attributes={{
+              className:
+                'module-message__context--icon module-message__context__copy-message',
+            }}
+            onClick={(event: React.MouseEvent) => {
+              event.stopPropagation();
+              event.preventDefault();
+
+              copyMessage(id);
+            }}
+          >
+            {i18n('copy')}
+          </MenuItem>
+        ) : null}
         {canDownload &&
         !isSticker &&
         !multipleAttachments &&
@@ -1476,22 +1492,6 @@ export class Message extends React.PureComponent<Props, State> {
             {i18n('retrySend')}
           </MenuItem>
         ) : null}
-        {canCopy ? (
-          <MenuItem
-            attributes={{
-              className:
-                'module-message__context--icon module-message__context__copy-message',
-            }}
-            onClick={(event: React.MouseEvent) => {
-              event.stopPropagation();
-              event.preventDefault();
-
-              copyMessage(id);
-            }}
-          >
-            {i18n('copyMessage')}
-          </MenuItem>
-        ) : null}        
         <MenuItem
           attributes={{
             className:

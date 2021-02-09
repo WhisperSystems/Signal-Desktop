@@ -25,6 +25,7 @@ import { sleep } from './sleep';
 import { longRunningTaskWrapper } from './longRunningTaskWrapper';
 import { toWebSafeBase64, fromWebSafeBase64 } from './webSafeBase64';
 import * as zkgroup from './zkgroup';
+import * as clipboard from './clipboard';
 
 export {
   arrayBufferToObjectURL,
@@ -50,4 +51,5 @@ export {
   sleep,
   toWebSafeBase64,
   zkgroup,
+  clipboard,
 };
