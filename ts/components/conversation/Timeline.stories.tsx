@@ -222,6 +222,7 @@ const actions = () => ({
   clearSelectedMessage: action('clearSelectedMessage'),
   updateSharedGroups: action('updateSharedGroups'),
 
+  copyMessage: action('copyMessage'),
   reactToMessage: action('reactToMessage'),
   replyToMessage: action('replyToMessage'),
   retrySend: action('retrySend'),

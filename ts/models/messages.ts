@@ -852,6 +852,7 @@ export class MessageModel extends window.Backbone.Model<MessageAttributesType> {
       canReply: this.canReply(),
       canDeleteForEveryone: this.canDeleteForEveryone(),
       canDownload: this.canDownload(),
+      canCopy: this.canCopy(),
       authorId: contact.id,
       authorTitle: contact.title,
       authorColor,
@@ -2135,6 +2136,21 @@ export class MessageModel extends window.Backbone.Model<MessageAttributesType> {
 
     // is too old to delete
     if (Date.now() - this.get('sent_at') > THREE_HOURS) {
+      return false;
+    }
+
+    return true;
+  }
+
+  canCopy(): boolean {
+    const body = (this.get('body') || '').trim();
+    const attachments = this.get('attachments') || [];
+
+    if (!body && attachments.length > 1) {
+      return false;
+    }
+
+    if (!body && !isImage(attachments)) {
       return false;
     }
 
