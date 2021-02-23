@@ -22,6 +22,16 @@ export type Props = OwnProps & ConfirmationDialogProps;
 export const ConfirmationModal = React.memo(
   ({ i18n, onClose, theme, children, ...rest }: Props) => {
     const [root, setRoot] = React.useState<HTMLElement | null>(null);
+    const [fadeout, setFadeout] = React.useState(false);
+
+    const close = React.useCallback(() => {
+      if (!fadeout) {
+        setFadeout(true);
+        setTimeout(() => {
+          onClose();
+        }, 150);
+      }
+    }, [fadeout, setFadeout, onClose]);
 
     React.useEffect(() => {
       const div = document.createElement('div');
@@ -37,7 +47,7 @@ export const ConfirmationModal = React.memo(
     React.useEffect(() => {
       const handler = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
-          onClose();
+          close();
 
           event.preventDefault();
           event.stopPropagation();
@@ -48,24 +58,24 @@ export const ConfirmationModal = React.memo(
       return () => {
         document.removeEventListener('keydown', handler);
       };
-    }, [onClose]);
+    }, [close]);
 
     const handleCancel = React.useCallback(
       (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
-          onClose();
+          close();
         }
       },
-      [onClose]
+      [close]
     );
 
     const handleKeyCancel = React.useCallback(
       (e: React.KeyboardEvent) => {
         if (e.target === e.currentTarget && e.keyCode === 27) {
-          onClose();
+          close();
         }
       },
-      [onClose]
+      [close]
     );
 
     return root
@@ -74,12 +84,13 @@ export const ConfirmationModal = React.memo(
             role="presentation"
             className={classNames(
               'module-confirmation-dialog__overlay',
-              theme ? themeClassName(theme) : undefined
+              theme ? themeClassName(theme) : undefined,
+              fadeout ? 'fadeout' : null
             )}
             onClick={handleCancel}
             onKeyUp={handleKeyCancel}
           >
-            <ConfirmationDialog i18n={i18n} {...rest} onClose={onClose}>
+            <ConfirmationDialog i18n={i18n} {...rest} onClose={close}>
               {children}
             </ConfirmationDialog>
           </div>,

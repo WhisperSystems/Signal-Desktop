@@ -121,6 +121,7 @@
   flex-direction: row;
   align-items: center;
   opacity: 0;
+  transition: opacity 0.1s;
 }
 
 .module-message:hover .module-message__buttons {
@@ -1647,6 +1648,8 @@ $timer-icons: '55', '50', '45', '40', '35', '30', '25', '20', '15', '10', '05',
     top: -4px;
     bottom: 5px;
   }
+
+  overflow: hidden;
 }
 
 .module-quote-container--with-content-above {
@@ -7848,6 +7851,9 @@ button.module-image__border-overlay:focus {
 
   @include popper-shadow();
 
+  @include fadein-animation;
+  @include fadeout-animation;
+
   @include light-theme {
     background: $color-gray-02;
     ::-webkit-scrollbar-thumb {
@@ -8691,6 +8697,9 @@ button.module-image__border-overlay:focus {
     justify-content: center;
     align-items: center;
     z-index: 5;
+
+    @include fadein-animation;
+    @include fadeout-animation;
   }
 
   &__container {
@@ -8702,6 +8711,8 @@ button.module-image__border-overlay:focus {
     overflow: hidden;
     display: flex;
     flex-direction: column;
+
+    @include fadein-animation;
 
     @include light-theme {
       background: $color-white;
@@ -9077,6 +9088,8 @@ button.module-image__border-overlay:focus {
     align-items: center;
     // THIS Z-INDEX IS OVER NINE THOUSAND. OVER NINE THOUSAND?! THAT CAN'T BE!
     z-index: 9001;
+    @include fadein-animation();
+    @include fadeout-animation();
   }
 
   &__container {
@@ -9084,6 +9097,9 @@ button.module-image__border-overlay:focus {
     padding: 12px 16px;
     border-radius: 8px;
     @include popper-shadow();
+    @include fadein-animation();
+
+    @include modal-shrink-out-animation(bottom);
 
     @include light-theme() {
       background: $color-white;
@@ -10088,6 +10104,9 @@ button.module-image__border-overlay:focus {
   position: absolute;
   right: 20px;
   bottom: 10px;
+
+  @include expand-animation;
+  @include collapse-animation;
 }
 
 .module-scroll-down__button {
@@ -10139,6 +10158,9 @@ button.module-image__border-overlay:focus {
 
   border-radius: 4px;
   padding-bottom: 4px;
+
+  @include fadein-animation;
+  @include fadeout-animation;
 
   @include popper-shadow;
 
@@ -11175,6 +11197,8 @@ $contact-modal-padding: 18px;
     color: $color-gray-05;
   }
 
+  @include fadein-animation;
+
   &__overlay {
     background: $color-black-alpha-40;
     position: fixed;
@@ -11186,6 +11210,9 @@ $contact-modal-padding: 18px;
     justify-content: center;
     align-items: center;
     z-index: 5;
+
+    @include fadein-animation;
+    @include fadeout-animation;
   }
 }
 
@@ -11376,6 +11403,9 @@ $contact-modal-padding: 18px;
     @include tooltip-dark-theme-variables;
   }
 
+  @include fadein-animation;
+  @include fadeout-animation;
+
   background-color: var(--tooltip-background-color);
   border-radius: 8px;
   color: var(--tooltip-text-color);
@@ -11465,16 +11495,19 @@ $contact-modal-padding: 18px;
   opacity: 0;
   user-select: none;
 
+  transition: opacity 0.2s ease;
+
   @include light-theme {
     background-color: $color-white;
   }
   @include dark-theme {
     background-color: $color-gray-75;
   }
+
+  z-index: 1000;
 }
 
 .react-contextmenu--visible {
-  z-index: 1000;
   opacity: 1;
 }
 
@@ -11736,6 +11769,12 @@ $contact-modal-padding: 18px;
       );
     }
   }
+}
+
+/* Lightbox */
+.module-lightbox {
+  @include fadein-animation;
+  @include fadeout-animation;
 }
 
 /* Spec: container > 438px and container < 593px */

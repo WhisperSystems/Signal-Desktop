@@ -429,3 +429,77 @@
   border-radius: 9999px; // This ensures the borders are completely rounded. (A value like 100% would make it an ellipse.)
   padding: 7px 14px;
 }
+
+@mixin expand-animation {
+  transform: scale(1, 1);
+  transition: transform 0.2s;
+}
+
+@mixin collapse-animation {
+  &.collapse {
+    transform: scale(0, 0);
+    transition: transform 0.15s;
+  }
+}
+
+@keyframes foldopen-animation__keyframes {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@mixin foldopen-animation {
+  animation-name: foldopen-animation__keyframes;
+  animation-duration: 0.2s;
+  transform-origin: bottom;
+}
+
+@mixin foldclose-animation {
+  &.foldclose {
+    transform: translateY(100%);
+    transition: transform 0.15s;
+  }
+}
+
+@keyframes fadein-animation__keyframes {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@mixin fadein-animation {
+  animation-name: fadein-animation__keyframes;
+  animation-duration: 0.2s;
+}
+
+@mixin fadeout-animation {
+  &.fadeout {
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+}
+
+@keyframes shrink {
+  0% {
+    transform: scale(1, 1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0, 0);
+    opacity: 0;
+  }
+}
+
+@mixin modal-shrink-out-animation($location: center) {
+  .fadeout & {
+    animation-name: shrink;
+    animation-duration: 0.15s;
+    transform-origin: $location;
+  }
+}
