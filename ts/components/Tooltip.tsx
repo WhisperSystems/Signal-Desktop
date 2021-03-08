@@ -4,7 +4,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { noop } from 'lodash';
-import { Manager, Reference, Popper } from 'react-popper';
+import { Manager, Reference, Popper, PopperProps } from 'react-popper';
 import { Theme, themeClassName } from '../util/theme';
 
 type EventWrapperPropsType = {
@@ -83,6 +83,7 @@ export enum TooltipPlacement {
 export type PropsType = {
   content: string | JSX.Element;
   direction?: TooltipPlacement;
+  popperModifiers?: PopperProps['modifiers'];
   sticky?: boolean;
   theme?: Theme;
 };
@@ -93,6 +94,7 @@ export const Tooltip: React.FC<PropsType> = ({
   direction,
   sticky,
   theme,
+  popperModifiers,
 }) => {
   const [isHovering, setIsHovering] = React.useState(false);
 
@@ -111,7 +113,7 @@ export const Tooltip: React.FC<PropsType> = ({
           </TooltipEventWrapper>
         )}
       </Reference>
-      <Popper placement={direction}>
+      <Popper placement={direction} modifiers={popperModifiers || undefined}>
         {({ arrowProps, placement, ref, style }) =>
           showTooltip && (
             <div
