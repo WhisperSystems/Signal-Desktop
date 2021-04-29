@@ -1189,6 +1189,11 @@ export class Message extends React.PureComponent<Props, State> {
             ? 'module-message__text--error'
             : null
         )}
+        onDoubleClick={(event: React.MouseEvent) => {
+          // Prevent double-click interefering with interactions _inside_
+          // the bubble.
+          event.stopPropagation();
+        }}
       >
         <MessageBody
           bodyRanges={bodyRanges}
