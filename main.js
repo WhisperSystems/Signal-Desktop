@@ -937,6 +937,7 @@ async function showDebugLogWindow() {
       nodeIntegration: false,
       nodeIntegrationInWorker: false,
       contextIsolation: false,
+      enableRemoteModule: true,
       preload: path.join(__dirname, 'debug_log_preload.js'),
       nativeWindowOpen: true,
     },

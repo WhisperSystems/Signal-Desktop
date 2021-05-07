@@ -11,7 +11,19 @@ $(document).on('keydown', e => {
 });
 
 const $body = $(document.body);
-$body.addClass(`${window.theme}-theme`);
+
+async function applyTheme() {
+  const theme = await window.getThemeSetting();
+  $body.removeClass('light-theme');
+  $body.removeClass('dark-theme');
+  $body.addClass(`${theme === 'system' ? window.systemTheme : theme}-theme`);
+}
+
+applyTheme();
+
+window.subscribeToSystemThemeChange(() => {
+  applyTheme();
+});
 
 // got.js appears to need this to successfully submit debug logs to the cloud
 window.setImmediate = window.nodeSetImmediate;
