@@ -3,15 +3,18 @@
 
 /* global window */
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, remote } = require('electron');
 const url = require('url');
 const copyText = require('copy-text-to-clipboard');
 const i18n = require('./js/modules/i18n');
+const { makeGetter } = require('./preload_utils');
 const {
   getEnvironment,
   setEnvironment,
   parseEnvironment,
 } = require('./ts/environment');
+
+const { nativeTheme } = remote.require('electron');
 
 const config = url.parse(window.location.toString(), true).query;
 const { locale } = config;
@@ -26,8 +29,22 @@ window.copyText = copyText;
 // got.js appears to need this to successfully submit debug logs to the cloud
 window.nodeSetImmediate = setImmediate;
 
+function setSystemTheme() {
+  window.systemTheme = nativeTheme.shouldUseDarkColors ? 'dark' : 'light';
+}
+
+setSystemTheme();
+
+window.subscribeToSystemThemeChange = fn => {
+  nativeTheme.on('updated', () => {
+    setSystemTheme();
+    fn();
+  });
+};
+
 window.getNodeVersion = () => config.node_version;
 window.getEnvironment = getEnvironment;
+window.getThemeSetting = makeGetter('theme-setting');
 
 window.Backbone = require('backbone');
 require('./ts/backbone/views/whisper_view');
