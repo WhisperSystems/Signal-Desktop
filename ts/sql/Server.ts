@@ -2942,9 +2942,9 @@ async function searchMessages(
         FROM
           messages_fts
         WHERE
-          messages_fts.body MATCH $query;
+          messages_fts.body LIKE $query;
       `
-    ).run({ query });
+    ).run({ query: `%${query}%` });
 
     if (conversationId === undefined) {
       db.prepare<Query>(
@@ -2995,11 +2995,11 @@ async function searchMessages(
         INNER JOIN messages
           ON messages.rowid = tmp_filtered_results.rowid
         WHERE
-          messages_fts.body MATCH $query
+          messages_fts.body LIKE $query
         ORDER BY messages.received_at DESC, messages.sent_at DESC;
         `
       )
-      .all({ query });
+      .all({ query: `%${query}%` });
 
     db.exec(
       `
@@ -3007,6 +3007,14 @@ async function searchMessages(
       DROP TABLE tmp_filtered_results;
       `
     );
+
+    const re = new RegExp(query, 'gi');
+    for (let index = 0; index < result.length; index += 1) {
+      result[index].snippet = result[index].snippet.replace(
+        re,
+        '<<left>>$&<<right>>'
+      );
+    }
 
     return result;
   })();
